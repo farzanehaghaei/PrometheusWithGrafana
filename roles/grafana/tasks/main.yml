@@ -1,0 +1,30 @@
+- name: Install grafana
+  dnf:
+          #   name: https://dl.grafana.com/enterprise/release/grafana-enterprise-10.1.4-1.x86_64.rpm
+          #state: latest
+    name: /root/PrometheusWithGrafana/grafana-enterprise-10.1.4-1.x86_64.rpm
+    state: present
+
+- name: "Grafana configuration file copy"
+  template:
+    src: "grafana.conf.j2"
+    dest: /etc/grafana/grafana.ini
+  notify: event_restart_grafana
+
+- name: "Grafana server started"
+  service:
+    name: grafana-server
+    enabled: true
+    state: started
+
+- name: "Check if Grafana is accessible."
+  uri:
+    url: http://127.0.0.1:3000
+    method: GET
+    status_code: 200
+
+- name: Modify Grafana admin password
+  shell: |
+    grafana-cli --homepath "/usr/share/grafana" admin reset-admin-password "password1234567890"
+  args:
+    executable: /bin/bash
